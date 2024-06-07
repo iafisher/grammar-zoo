@@ -18,6 +18,7 @@ REPO = "https://github.com/iafisher/grammar-zoo"
 def main() -> None:
     parser = argparse.ArgumentParser()
     # TODO: --random flag
+    # TODO: --version flag
     parser.add_argument("-t", "--tool")
     parser.add_argument("-l", "--list", action="store_true")
     parser.add_argument("words", nargs="*")
