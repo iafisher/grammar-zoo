@@ -6,12 +6,28 @@ import sys
 import tempfile
 import time
 from dataclasses import dataclass
+from typing import List
 
 import requests
 
 
 # TODO: can I pull this from pkg config?
 REPO = "https://github.com/iafisher/grammar-zoo"
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    # TODO: --random flag
+    parser.add_argument("-t", "--tool")
+    parser.add_argument("-l", "--list", action="store_true")
+    parser.add_argument("words", nargs="*")
+    args = parser.parse_args()
+
+    if args.list:
+        main_list()
+    else:
+        sentence = " ".join(args.words)
+        main_check(sentence, args.tool)
 
 
 def main_check(sentence: str, tool_original: str) -> None:
@@ -51,7 +67,7 @@ def main_list() -> None:
 @dataclass
 class Result:
     grammatical: bool
-    comments: str
+    comments: List[str]
 
 
 VALE_CONFIG = """\
@@ -134,7 +150,7 @@ def hit_language_tool_api(sentence: str, port: int) -> Result:
                 return Result(
                     grammatical=False, comments=[m["message"] for m in matches]
                 )
-        except requests.exceptions.ConnectionError:
+        except requests.exceptions.ConnectionError as e:
             retries -= 1
             if retries == 0:
                 raise e
@@ -163,18 +179,3 @@ TOOLS = {
 ALIASES = {
     "language-tool": "languagetool",
 }
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    # TODO: --random flag
-    parser.add_argument("-t", "--tool")
-    parser.add_argument("-l", "--list", action="store_true")
-    parser.add_argument("words", nargs="*")
-    args = parser.parse_args()
-
-    if args.list:
-        main_list()
-    else:
-        sentence = " ".join(args.words)
-        main_check(sentence, args.tool)

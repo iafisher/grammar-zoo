@@ -5,12 +5,19 @@ description = ""
 authors = ["Ian Fisher <ian@iafisher.com>"]
 readme = "README.md"
 license = "LICENSE"
-packages = [{include = "grammar-zoo"}]
+packages = [{include = "grammar_zoo"}]
 
 [tool.poetry.dependencies]
 python = "^3.11"
 requests = "^2.32.3"
 
+[tool.poetry.scripts]
+grammar-zoo = "grammar_zoo.main:main"
+
+
+[tool.poetry.group.dev.dependencies]
+types-requests = "^2.32.0.20240602"
+mypy = "^1.10.0"
 
 [build-system]
 requires = ["poetry-core"]

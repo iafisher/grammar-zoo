@@ -34,7 +34,7 @@ repos:
     -   id: mypy
         name: mypy
         description: 'Run mypy on the package'
-        entry: mypy
-        language: system
+        entry: ./.venv/bin/mypy
+        language: script
         pass_filenames: false
-        args: [.]
+        args: [grammar_zoo]
