@@ -1,5 +1,8 @@
 import argparse
+import csv
+import importlib
 import json
+import random
 import shutil
 import subprocess
 import sys
@@ -17,18 +20,47 @@ REPO = "https://github.com/iafisher/grammar-zoo"
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    # TODO: --random flag
     # TODO: --version flag
-    parser.add_argument("-t", "--tool")
-    parser.add_argument("-l", "--list", action="store_true")
-    parser.add_argument("words", nargs="*")
+    parser.add_argument("-t", "--tool", help="Select the tool to check the sentence.")
+    parser.add_argument(
+        "-l", "--list", action="store_true", help="List available tools."
+    )
+    parser.add_argument(
+        "--random", action="store_true", help="Use a random ungrammatical sentence."
+    )
+    parser.add_argument("words", nargs="*", help="Sentence to check.")
     args = parser.parse_args()
 
     if args.list:
         main_list()
     else:
-        sentence = " ".join(args.words)
+        if args.random:
+            sentence = get_random_cola_sentence()
+            print("Testing against random sentence:")
+            print()
+            print(f"  {sentence}")
+            print()
+        else:
+            sentence = " ".join(args.words)
         main_check(sentence, args.tool)
+
+
+def get_random_cola_sentence():
+    # pull a random ungrammatical sentence from the Corpus of Linguistic Acceptability
+    # https://nyu-mll.github.io/CoLA/
+    with importlib.resources.open_text(
+        "grammar_zoo.resources", "cola_in_domain_dev.tsv"
+    ) as f:
+        reader = csv.reader(f, delimiter="\t")
+        choices = []
+        for row in reader:
+            if row[1] == "1":
+                # skip grammatical sentences
+                continue
+
+            choices.append(row[3])
+
+        return random.choice(choices)
 
 
 def main_check(sentence: str, tool_original: str) -> None:

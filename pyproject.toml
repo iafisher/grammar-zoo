@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "grammar-zoo"
-version = "0.1.0"
+version = "0.1.1"
 description = ""
 authors = ["Ian Fisher <ian@iafisher.com>"]
 readme = "README.md"
@@ -13,7 +13,6 @@ requests = "^2.32.3"
 
 [tool.poetry.scripts]
 grammar-zoo = "grammar_zoo.main:main"
-
 
 [tool.poetry.group.dev.dependencies]
 types-requests = "^2.32.0.20240602"
