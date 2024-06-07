@@ -61,6 +61,7 @@ def main_check(sentence: str, tool_original: str) -> None:
 
 
 def main_list() -> None:
+    # TODO: check if the user has these tools installed
     for tool in sorted(TOOLS):
         print(tool)
 
@@ -81,7 +82,8 @@ BasedOnStyles = Vale
 
 def run_vale(sentence: str) -> Result:
     if shutil.which("vale") is None:
-        raise GrammarZooNotInstalledException("languagetool")
+        # TODO: installation instructions
+        raise GrammarZooNotInstalledException("vale")
 
     with tempfile.NamedTemporaryFile() as tmp:
         # TODO: distribute vale config file with pkg instead of creating it on the fly
@@ -114,6 +116,7 @@ def run_vale(sentence: str) -> Result:
 
 def run_language_tool(sentence: str) -> Result:
     if shutil.which("languagetool-server") is None:
+        # TODO: installation instructions
         raise GrammarZooNotInstalledException("languagetool")
 
     # TODO: allow custom port
