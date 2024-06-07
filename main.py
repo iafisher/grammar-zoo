@@ -1,11 +1,17 @@
 import argparse
+import json
 import shutil
 import subprocess
 import sys
+import tempfile
 import time
 from dataclasses import dataclass
 
 import requests
+
+
+# TODO: can I pull this from pkg config?
+REPO = "https://github.com/iafisher/grammar-zoo"
 
 
 def main_check(sentence: str, tool_original: str) -> None:
@@ -15,8 +21,10 @@ def main_check(sentence: str, tool_original: str) -> None:
     if f is not None:
         try:
             result = f(sentence)
+        except GrammarZooException as e:
+            eprint(f"Error: {e}")
         except GrammarZooNotInstalledException as e:
-            eprint(f"{e} is not installed.")
+            eprint(f"Error: {e} is not installed.")
         else:
             print("Grammatical: ", end="")
             if result.grammatical:
@@ -44,6 +52,47 @@ def main_list() -> None:
 class Result:
     grammatical: bool
     comments: str
+
+
+VALE_CONFIG = """\
+MinAlertLevel = error
+
+[*]
+BasedOnStyles = Vale
+"""
+
+
+def run_vale(sentence: str) -> Result:
+    if shutil.which("vale") is None:
+        raise GrammarZooNotInstalledException("languagetool")
+
+    with tempfile.NamedTemporaryFile() as tmp:
+        # TODO: distribute vale config file with pkg instead of creating it on the fly
+        tmp.write(VALE_CONFIG.encode("ascii"))
+        tmp.flush()
+
+        proc = subprocess.run(
+            ["vale", "--output=JSON", "--config", tmp.name, sentence],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        payload = json.loads(proc.stdout)
+        if not payload:
+            return Result(grammatical=True, comments=[])
+        else:
+            # TODO: handle error
+            try:
+                comments = payload["stdin.txt"]
+            except KeyError:
+                raise GrammarZooException(
+                    "Vale's output is missing the expected 'stdin.txt' key.\n\n"
+                    + f"Please file a bug at {REPO}."
+                )
+
+            return Result(
+                grammatical=False, comments=[comment["Message"] for comment in comments]
+            )
 
 
 def run_language_tool(sentence: str) -> Result:
@@ -82,7 +131,9 @@ def hit_language_tool_api(sentence: str, port: int) -> Result:
             if len(matches) == 0:
                 return Result(grammatical=True, comments=[])
             else:
-                return Result(grammatical=False, comments=[m["message"] for m in matches])
+                return Result(
+                    grammatical=False, comments=[m["message"] for m in matches]
+                )
         except requests.exceptions.ConnectionError:
             retries -= 1
             if retries == 0:
@@ -106,6 +157,7 @@ class GrammarZooNotInstalledException(Exception):
 
 TOOLS = {
     "languagetool": run_language_tool,
+    "vale": run_vale,
 }
 
 ALIASES = {
